@@ -1,0 +1,25 @@
+---
+- hosts: localhost
+  vars:
+    cp_management_ip: 192.168.30.5
+    cp_management_user: api_user
+    cp_management_pass: vpn123
+    cp_management_fingerprint: 28:30:11:29:CA:64:36:53:0B:75:A4:32:D6:1D:AC:9F:08:75:41:7C
+
+  tasks:
+  - name: "Check Point Management API - Login"
+    check_point_mgmt:
+      command: login
+      parameters:
+        username: "{{ cp_management_user }}"
+        password: "{{ cp_management_pass }}"
+        management: "{{ cp_management_ip }}"
+      fingerprint: "{{ cp_management_fingerprint }}"
+    register: login_response
+
+
+  - name: "Check Point Management API - Logout"
+    check_point_mgmt:
+      command: logout
+      session-data: "{{ login_response }}"
+
