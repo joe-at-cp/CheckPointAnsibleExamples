@@ -1,10 +1,10 @@
 ---
 - hosts: localhost
   vars:
-    cp_management_ip: 192.168.30.5
-    cp_management_user: api_user
-    cp_management_pass: vpn123
-    cp_management_fingerprint: 28:30:11:29:CA:64:36:53:0B:75:A4:32:D6:1D:AC:9F:08:75:41:7C
+    cp_management_ip: "{{lookup('env','cp_mgmt_ip')}}"
+    cp_management_user: "{{lookup('env','cp_mgmt_user')}}"
+    cp_management_pass: "{{lookup('env','cp_mgmt_pass')}}"
+    cp_management_fingerprint: "{{lookup('env','cp_mgmt_fingerprint')}}"
 
   tasks:
   - name: "Check Point Management API - Login"
@@ -17,6 +17,10 @@
       fingerprint: "{{ cp_management_fingerprint }}"
     register: login_response
 
+  - name: "Check Point Management API - Publish"
+    check_point_mgmt:
+      command: publish
+      session-data: "{{ login_response }}"
 
   - name: "Check Point Management API - Logout"
     check_point_mgmt:
