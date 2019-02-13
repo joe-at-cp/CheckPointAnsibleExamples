@@ -1,0 +1,55 @@
+---
+- hosts: localhost
+  vars:
+    cp_management_ip: "{{lookup('env','cp_mgmt_ip')}}"
+    cp_management_user: "{{lookup('env','cp_mgmt_user')}}"
+    cp_management_pass: "{{lookup('env','cp_mgmt_pass')}}"
+    cp_management_fingerprint: "{{lookup('env','cp_mgmt_fingerprint')}}"
+
+  tasks:
+  - name: "Check Point Management API - Login"
+    check_point_mgmt:
+      command: login
+      parameters:
+        username: "{{ cp_management_user }}"
+        password: "{{ cp_management_pass }}"
+        management: "{{ cp_management_ip }}"
+      fingerprint: "{{ cp_management_fingerprint }}"
+    register: login_response
+
+  - name: "Check Point Management API - Add Simple Gateway"
+    check_point_mgmt:
+      command: add-simple-gateway
+      parameters:
+       name: "NewGateway"
+       ipv4-address: "192.168.100.100"
+       color: blue
+       firewall: "true"
+       version: "R80.10"
+       ips: "true"
+       one-time-password: "mysickey"
+       interfaces:
+       -  name: eth0
+          ipv4-address: "192.168.100.100"
+          ipv4-network-mask: 255.255.255.0
+          topology: External
+          anti-spoofing: "true"
+       -  name: eth1
+          ipv4-address: "192.168.200.200"
+          ipv4-network-mask: 255.255.255.0
+          topology: Internal
+          anti-spoofing: "true"
+          topology-settings:
+            ip-address-behind-this-interface: "network defined by the interface ip and net mask"
+      session-data: "{{ login_response }}"     
+
+  - name: "Check Point Management API - Publish"
+    check_point_mgmt:
+      command: publish
+      session-data: "{{ login_response }}"
+
+  - name: "Check Point Management API - Logout"
+    check_point_mgmt:
+      command: logout
+      session-data: "{{ login_response }}"
+
