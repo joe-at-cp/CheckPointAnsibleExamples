@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  vars:
+    cp_management_ip: "{{lookup('env','cp_mgmt_ip')}}"
+    cp_management_user: "{{lookup('env','cp_mgmt_user')}}"
+    cp_management_pass: "{{lookup('env','cp_mgmt_pass')}}"
+    cp_management_fingerprint: "{{lookup('env','cp_mgmt_fingerprint')}}"
+
+  tasks:
+
+  - name: "Check Point Management API - Login"
+    check_point_mgmt:
+      command: login
+      parameters:
+        username: "{{ cp_management_user }}"
+        password: "{{ cp_management_pass }}"
+        management: "{{ cp_management_ip }}"
+      fingerprint: "{{ cp_management_fingerprint }}"
+    register: login_response
+
+  - name: "Check Point Management API - Delete Access Rule"
+    check_point_mgmt:
+      command: delete-access-rule
+      parameters:
+        layer: Network
+        name: MyNewRule
+      session-data: "{{ login_response }}"
+
+  - name: "Check Point Management API - Publish"
+    check_point_mgmt:
+      command: publish
+      session-data: "{{ login_response }}"
+
+  - name: "Check Point Management API - Logout"
+    check_point_mgmt:
+      command: logout
+      session-data: "{{ login_response }}"
+
